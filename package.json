@@ -1,5 +1,5 @@
 {
-  "name": "next-redux-todo",
+  "name": "todo-rtk",
   "version": "0.1.0",
   "private": true,
   "scripts": {
