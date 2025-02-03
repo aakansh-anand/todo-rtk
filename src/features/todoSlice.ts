@@ -1,16 +1,41 @@
-import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  nanoid,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 export interface Todo {
   id: string;
   text: string;
   completed: boolean;
 }
 export interface TodoState {
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error?: string | null;
   todos: Todo[];
 }
 
 const initialState: TodoState = {
+  status: "idle",
+  error: null,
   todos: [],
 };
+
+export const addTodoAsync = createAsyncThunk(
+  "todos/addTodoAync",
+  async (text: string) => {
+    return new Promise<Todo>((resolve) => {
+      setTimeout(() => {
+        const todo = {
+          id: nanoid(),
+          text,
+          completed: false,
+        };
+        resolve(todo);
+      }, 3000);
+    });
+  }
+);
 
 export const todoSlice = createSlice({
   name: "todo",
@@ -44,6 +69,21 @@ export const todoSlice = createSlice({
       }
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(addTodoAsync.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(addTodoAsync.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.todos.push(action.payload);
+      })
+      .addCase(addTodoAsync.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message || "Something went wrong";
+      });
+  },
 });
 
 export const { addTodo, removeTodo, updateTodo, toggleTodo } =
@@ -52,4 +92,3 @@ export default todoSlice.reducer;
 
 // Store type
 export type RootState = ReturnType<typeof todoSlice.reducer>;
-
